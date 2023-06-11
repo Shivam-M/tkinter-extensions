@@ -1,3 +1,8 @@
+from tkinter import Tk, Frame, Label
+from threading import Thread
+from PIL import Image, ImageTk
+import imageio, time
+
 class VideoPlayer(Frame):
     def __init__(self, master, file_path, **kwargs):
         super().__init__(master, **kwargs)
@@ -40,6 +45,7 @@ class VideoPlayer(Frame):
         frame_counter = 0
         frame_rate = self.video_object.get_meta_data()["fps"]
         for frame in self.video_object.iter_data():
+            start_time = time.time()
             frame_counter += 1
             if frame_counter % (frame_rate / self.target_fps) != 0: continue
             image = Image.fromarray(frame).resize((self.cget("width") - 4, self.cget("height") - 4), Image.ANTIALIAS)
@@ -49,6 +55,7 @@ class VideoPlayer(Frame):
             self.video_progress = frame_counter / (self.video_object.get_meta_data()["duration"] * self.video_object.get_meta_data()["fps"])
             if self.video_settings.get("progress_bar", False): self.progress_fill.config(width=self.video_progress * self.cget("width"))
             if not self.video_playing: break
+            time.sleep(1.0 / frame_rate - (time.time() - start_time))
         self.video_playing = False
         if self.video_settings.get("auto_replay", False): self.play()
         if self.video_settings.get("hide_after_play", False):
